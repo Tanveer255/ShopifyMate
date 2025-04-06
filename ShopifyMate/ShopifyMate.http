@@ -1,0 +1,6 @@
+@ShopifyMate_HostAddress = http://localhost:5200
+
+GET {{ShopifyMate_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
