@@ -1,34 +1,31 @@
-﻿// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+﻿using Microsoft.Extensions.Options;
+using ShopifyMate.Entity.Common.Models;
 
 namespace ShopifyMate.Controllers;
+
 [Route("api/[controller]")]
 [ApiController]
-public class ShopifyAuthController(
-    IConfiguration config,
-    HttpClient httpClient
-    ) : ControllerBase
+public class ShopifyAuthController(IOptions<AppSetting> appSettings, IHttpClientFactory httpClientFactory) : ControllerBase
 {
-    private readonly IConfiguration _config = config;
-    private readonly HttpClient _httpClient = httpClient;
-    // Step 1: Redirect to Shopify for OAuth
+    private readonly Shopify _shopify = appSettings.Value.Shopify;
+
     [HttpGet("install")]
     public IActionResult Install(string shop)
     {
-        var clientId = _config["Shopify:ClientId"];
-        var scopes = _config["Shopify:Scopes"];
-        var redirectUri = _config["Shopify:RedirectUri"];
+        var clientId = _shopify.ClientId;
+        var scopes = _shopify.Scopes;
+        var redirectUri = _shopify.RedirectUri;
 
         var installUrl = $"https://{shop}/admin/oauth/authorize?client_id={clientId}&scope={scopes}&redirect_uri={Uri.EscapeDataString(redirectUri)}";
 
         return Redirect(installUrl);
     }
 
-    // Step 2: Handle OAuth Callback from Shopify
     [HttpGet("callback")]
     public async Task<IActionResult> Callback(string code, string hmac, string shop, string state)
     {
-        var clientId = _config["Shopify:ClientId"];
-        var clientSecret = _config["Shopify:ClientSecret"];
+        var clientId = _shopify.ClientId;
+        var clientSecret = _shopify.ClientSecret;
 
         var tokenRequest = new Dictionary<string, string>
         {
@@ -37,7 +34,8 @@ public class ShopifyAuthController(
             { "code", code }
         };
 
-        var response = await _httpClient.PostAsync($"https://{shop}/admin/oauth/access_token",
+        using var client = httpClientFactory.CreateClient();
+        var response = await client.PostAsync($"https://{shop}/admin/oauth/access_token",
             new FormUrlEncodedContent(tokenRequest));
 
         if (!response.IsSuccessStatusCode)
@@ -46,11 +44,13 @@ public class ShopifyAuthController(
         var responseBody = await response.Content.ReadAsStringAsync();
         var tokenData = JsonSerializer.Deserialize<ShopifyTokenResponse>(responseBody);
 
-        // Save access token in the database (Example: Store it in a Dictionary for now)
         FakeDatabase[shop] = tokenData.AccessToken;
+
+        await RegisterUninstallWebhook(shop, tokenData.AccessToken);
 
         return Ok($"App installed successfully for {shop}");
     }
+
     public async Task RegisterUninstallWebhook(string shop, string accessToken)
     {
         using var client = new HttpClient();
@@ -75,7 +75,7 @@ public class ShopifyAuthController(
             throw new Exception("Failed to register uninstall webhook");
     }
 
-    private static Dictionary<string, string> FakeDatabase = new Dictionary<string, string>();
+    private static Dictionary<string, string> FakeDatabase = new();
 
     public class ShopifyTokenResponse
     {
