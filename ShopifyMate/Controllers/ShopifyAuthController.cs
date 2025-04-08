@@ -48,7 +48,7 @@ public class ShopifyAuthController(IOptions<AppSetting> appSettings, IHttpClient
         return Ok($"App installed successfully for {shop}");
     }
 
-    public async Task RegisterUninstallWebhook(string shop, string accessToken)
+    private async Task RegisterUninstallWebhook(string shop, string accessToken)
     {
         using var client = new HttpClient();
         client.DefaultRequestHeaders.Add("X-Shopify-Access-Token", accessToken);
