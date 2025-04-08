@@ -1,7 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using ShopifyMate.Entity.Common.Models;
-
-namespace ShopifyMate.Controllers;
+﻿namespace ShopifyMate.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]

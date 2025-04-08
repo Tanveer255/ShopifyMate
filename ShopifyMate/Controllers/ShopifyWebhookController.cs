@@ -1,7 +1,4 @@
 ﻿using System.Security.Cryptography;
-using Microsoft.AspNetCore.Mvc;
-using System.Text;
-using System.Text.Json;
 
 namespace ShopifyMate.Controllers
 {
