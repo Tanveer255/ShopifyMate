@@ -2,7 +2,10 @@
 
 [Route("api/[controller]")]
 [ApiController]
-public class ShopifyAuthController(IOptions<AppSetting> appSettings, IHttpClientFactory httpClientFactory) : ControllerBase
+public class ShopifyAuthController(
+    IOptions<AppSetting> appSettings,
+    IHttpClientFactory httpClientFactory
+    ) : ControllerBase
 {
     private readonly Shopify _shopify = appSettings.Value.Shopify;
 
