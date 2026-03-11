@@ -3,6 +3,7 @@
 public class AppSetting
 {
     public Shopify Shopify { get; set; }
+    public string AllowedHosts { get; set; }
 }
 public class Shopify
 {
