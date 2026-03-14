@@ -73,6 +73,7 @@ public class ShopifyAuthController(
 
         if (!response.IsSuccessStatusCode)
             throw new Exception("Failed to register uninstall webhook");
+
     }
 
     private static Dictionary<string, string> FakeDatabase = new();
